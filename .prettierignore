@@ -1,0 +1,10 @@
+node_modules/
+.expo/
+.export-check/
+dist/
+coverage/
+android/
+ios/
+pnpm-lock.yaml
+plan-bingo.md
+AGENTS.md
