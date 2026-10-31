@@ -13,12 +13,15 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:ui": "jest --config jest.ui.config.js",
+    "test:ui:watch": "jest --config jest.ui.config.js --watch",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "doctor": "npx expo-doctor",
     "e2e": "maestro test .maestro"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
     "@shopify/react-native-skia": "2.14.0",
     "expo": "~58.0.21",
     "expo-constants": "~58.0.14",
@@ -32,9 +35,11 @@
     "react-native": "0.88.1",
     "react-native-mmkv": "^4.3.2",
     "react-native-safe-area-context": "~5.10.1",
-    "react-native-screens": "~4.30.1"
+    "react-native-screens": "~4.30.1",
+    "zustand": "^5.0.16"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^14.1.0",
     "@types/better-sqlite3": "^9.6.0",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.3.0",
@@ -44,6 +49,7 @@
     "eslint-config-prettier": "^10.1.8",
     "fast-check": "^4.10.2",
     "jest": "^30.5.2",
+    "jest-expo": "~58.0.13",
     "prettier": "^3.9.10",
     "ts-jest": "^29.4.15",
     "typescript": "~6.0.3"
