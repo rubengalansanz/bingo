@@ -103,7 +103,7 @@ describe('BoardScreen — accessible state (§7.3)', () => {
     prime(gameWith(PRESETS.eu90, 2));
     await render(<BoardScreen />);
 
-    fireEvent.press(screen.getByTestId('board-cell-40'));
+    await fireEvent.press(screen.getByTestId('board-cell-40'));
 
     expect(screen.getByTestId('board-counter')).toHaveTextContent('2 extraídas · 88 pendientes');
   });

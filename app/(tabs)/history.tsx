@@ -1,17 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { HistoryScreen } from '@/features/history/HistoryScreen';
 
-/** `/history` — placeholder replaced by `HistoryScreen` in a later work unit. */
+/** `/history` — the draw log, newest first (§7.4). */
 export default function HistoryRoute() {
-  return (
-    <View style={styles.root} testID="history-screen">
-      <Text style={styles.title} accessibilityRole="header">
-        Historial
-      </Text>
-    </View>
-  );
+  return <HistoryScreen />;
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0E2A1E', padding: 24 },
-  title: { color: '#F5F1E6', fontSize: 20, fontWeight: '700', paddingTop: 8 },
-});

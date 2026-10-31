@@ -57,7 +57,7 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
 | T3  | Navegación por pestañas      | S2               | inline | hecho     | TBD    |
 | T4  | Grilla en dominio            | S3               | inline | hecho     | TBD    |
 | T5  | Pantalla Tablero             | S4               | inline | hecho     | TBD    |
-| T6  | Pantalla Historial           | S5               | inline | pendiente | —      |
+| T6  | Pantalla Historial           | S5               | inline | hecho     | TBD    |
 | T7  | Deshacer end-to-end + toast  | S6, S9           | inline | pendiente | —      |
 | T8  | ConfirmDialog + Ajustes stub | S7, S8           | inline | pendiente | —      |
 | T9  | E2E, CI y docs               | S11, S12         | inline | pendiente | —      |
@@ -133,4 +133,16 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
   Jest); se cubre en el dispositivo con los flujos 3 y 4, y lo que sí se testea es que la
   preferencia se consulta y que la celda recién extraída anuncia su posición.
   Verificación: `pnpm test:ui` 26/26 · `pnpm test:coverage` 117/117 al 100 % ·
+  `typecheck`, `lint`, `format:check` limpios.
+
+- **L10 (2026-10-31, T6 hecho):** `src/features/history/{useHistory.ts,HistoryScreen.tsx}`.
+  Fila `#23 · 67 · HH:mm` con badge `Última` solo en la más reciente y botón `Deshacer`
+  inline. Estado vacío `"Todavía no salió ninguna bola."`.
+  Desvío consciente del plan: en vez de `FlatList inverted` se invierte el array en el
+  view model y se usa una lista normal. El resultado visible es el mismo (la última
+  arriba), pero el orden renderizado coincide con el visual, así que el test lo puede
+  afirmar de verdad. `getItemLayout` fijo de 72 pt.
+  Hallazgo: en RNTL 14 `fireEvent.press` también es **async** (como `render`); sin
+  `await` la pantalla no reflejaba el cambio de estado.
+  Verificación: `pnpm test:ui` 34/34 · `pnpm test:coverage` 117/117 al 100 % ·
   `typecheck`, `lint`, `format:check` limpios.
