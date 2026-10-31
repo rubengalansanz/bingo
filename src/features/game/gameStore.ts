@@ -41,7 +41,13 @@ export type GameActions = {
   /** Loads the stored game (or creates the first one). Idempotent. */
   boot: () => Promise<void>;
   drawBall: () => void;
-  undoBall: () => void;
+  /**
+   * Undoes one draw and returns the ball that went back to the bombo, or
+   * `null` when nothing happened (empty history, busy or a failed write).
+   * The screen uses that number to announce the undo; the toast is transient
+   * UI state and never lives in the store (§5.4).
+   */
+  undoBall: () => number | null;
   startNewGame: () => void;
 };
 
@@ -156,13 +162,13 @@ export function createGameStore(deps: GameStoreDeps): StoreApi<GameStore> {
       undoBall: () => {
         const game = canMutate();
         if (game === null) {
-          return;
+          return null;
         }
 
         const result = undo(game);
         if (!result.ok) {
           // EMPTY_HISTORY: nothing to undo is a no-op, never an error (§2.6).
-          return;
+          return null;
         }
 
         try {
@@ -171,10 +177,11 @@ export function createGameStore(deps: GameStoreDeps): StoreApi<GameStore> {
           deps.openRepository().save(result.value.game);
         } catch {
           set({ banner: { tone: 'error', text: MESSAGES.undoFailed } });
-          return;
+          return null;
         }
 
         set({ game: result.value.game, banner: null });
+        return result.value.undone.number;
       },
 
       startNewGame: () => {

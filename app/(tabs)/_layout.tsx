@@ -41,6 +41,7 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Sorteo',
+          tabBarButtonTestID: 'tab-sorteo',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="tennisball-outline" color={color as string} size={size} />
           ),
@@ -50,6 +51,7 @@ export default function TabsLayout() {
         name="board"
         options={{
           title: 'Tablero',
+          tabBarButtonTestID: 'tab-tablero',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="grid-outline" color={color as string} size={size} />
           ),
@@ -59,6 +61,7 @@ export default function TabsLayout() {
         name="history"
         options={{
           title: 'Historial',
+          tabBarButtonTestID: 'tab-historial',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="time-outline" color={color as string} size={size} />
           ),
@@ -68,6 +71,7 @@ export default function TabsLayout() {
         name="settings"
         options={{
           title: 'Ajustes',
+          tabBarButtonTestID: 'tab-ajustes',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" color={color as string} size={size} />
           ),

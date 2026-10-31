@@ -216,7 +216,8 @@ describe('gameStore — undo (§2.6, INV-1)', () => {
     await state(store).boot();
     const undone = seeded.history[0]!.number;
 
-    state(store).undoBall();
+    // The returned number is what the screen announces in its toast (§2.6).
+    expect(state(store).undoBall()).toBe(undone);
 
     expect(state(store).game?.history).toHaveLength(0);
     expect(state(store).game?.pool).toHaveLength(90);
@@ -231,13 +232,13 @@ describe('gameStore — undo (§2.6, INV-1)', () => {
 
   it('makes the next draw return exactly the undone ball', async () => {
     const { store, seed } = harness();
-    const seeded = seed(1);
+    seed(1);
     await state(store).boot();
-    const undone = seeded.history[0]!.number;
+    const undone = state(store).undoBall();
 
-    state(store).undoBall();
     state(store).drawBall();
 
+    expect(undone).not.toBeNull();
     expect(state(store).game?.history[0]?.number).toBe(undone);
   });
 
@@ -246,7 +247,7 @@ describe('gameStore — undo (§2.6, INV-1)', () => {
     await state(store).boot();
     const before = state(store).game;
 
-    state(store).undoBall();
+    expect(state(store).undoBall()).toBeNull();
 
     expect(state(store).game).toBe(before);
     expect(state(store).banner).toBeNull();
@@ -273,7 +274,7 @@ describe('gameStore — undo (§2.6, INV-1)', () => {
     const before = state(store).game;
 
     failWrites(true);
-    state(store).undoBall();
+    expect(state(store).undoBall()).toBeNull();
 
     expect(state(store).game).toBe(before);
     expect(state(store).banner).toEqual({

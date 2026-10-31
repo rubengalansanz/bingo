@@ -1,9 +1,11 @@
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DEFAULT_RANGE, formatRangeSpan } from '@/core/engine/range';
 import { useGame } from '@/features/game/useGame';
 import { COLORS } from '@/ui/colors';
+import { Toast, useToast } from '@/ui/Toast';
 
 /**
  * Draw screen, Phase 2 cut (plan §7.2): header, ball, counter, primary action and
@@ -39,9 +41,11 @@ export function DrawScreen() {
     previousBall,
     exhausted,
     onDraw,
+    onUndo,
     onNewGame,
   } = useGame();
   const { width } = useWindowDimensions();
+  const toast = useToast();
 
   // Small phones get a smaller ball instead of a squeezed layout (§7.8).
   const ballSize = width < 380 ? 200 : 264;
@@ -49,6 +53,17 @@ export function DrawScreen() {
   const ready = phase === 'ready';
   const disabled = !ready || busy;
   const percent = total > 0 ? Math.round((drawn / total) * 100) : 0;
+  // Undo is a no-op without history, so the button is disabled rather than
+  // hidden: the row keeps its shape and the state stays predictable (§2.6).
+  const undoDisabled = disabled || drawn === 0;
+
+  const handleUndo = (): void => {
+    const undone = onUndo();
+    // Only a real undo is announced: a failed or empty undo keeps its banner.
+    if (undone !== null) {
+      toast.show(`Bola ${undone} devuelta al bombo`);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.root} testID="draw-screen">
@@ -127,6 +142,46 @@ export function DrawScreen() {
       >
         <Text style={styles.ctaLabel}>{exhausted ? 'Nueva partida' : 'Sacar bola'}</Text>
       </Pressable>
+
+      <View style={styles.secondary}>
+        <Pressable
+          onPress={handleUndo}
+          disabled={undoDisabled}
+          accessibilityRole="button"
+          accessibilityLabel="Deshacer la última extracción"
+          accessibilityState={{ disabled: undoDisabled }}
+          testID="draw-undo"
+          style={({ pressed }) => [
+            styles.secondaryButton,
+            undoDisabled && styles.secondaryDisabled,
+            pressed && !undoDisabled && styles.secondaryPressed,
+          ]}
+        >
+          <Text style={styles.secondaryLabel}>Deshacer</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => router.push('/history')}
+          accessibilityRole="button"
+          accessibilityLabel="Ver el historial"
+          testID="draw-history"
+          style={({ pressed }) => [styles.secondaryButton, pressed && styles.secondaryPressed]}
+        >
+          <Text style={styles.secondaryLabel}>Historial</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => router.push('/board')}
+          accessibilityRole="button"
+          accessibilityLabel="Ver el tablero"
+          testID="draw-board"
+          style={({ pressed }) => [styles.secondaryButton, pressed && styles.secondaryPressed]}
+        >
+          <Text style={styles.secondaryLabel}>Tablero</Text>
+        </Pressable>
+      </View>
+
+      <Toast message={toast.message} />
     </SafeAreaView>
   );
 }
@@ -257,5 +312,31 @@ const styles = StyleSheet.create({
     color: COLORS.background,
     fontSize: 20,
     fontWeight: '800',
+  },
+  secondary: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  secondaryButton: {
+    flex: 1,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.line,
+  },
+  secondaryDisabled: {
+    // Same rule as the primary action: visible but inert (§7.2).
+    opacity: 0.4,
+  },
+  secondaryPressed: {
+    backgroundColor: COLORS.surfaceStrong,
+  },
+  secondaryLabel: {
+    color: COLORS.text,
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

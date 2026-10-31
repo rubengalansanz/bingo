@@ -33,7 +33,8 @@ export type GameViewModel = GameState & {
   readonly previousBall: number | null;
   readonly exhausted: boolean;
   readonly onDraw: () => void;
-  readonly onUndo: () => void;
+  /** Returns the ball sent back to the bombo, or `null` if nothing happened. */
+  readonly onUndo: () => number | null;
   readonly onNewGame: () => void;
 };
 

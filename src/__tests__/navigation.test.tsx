@@ -35,8 +35,16 @@ describe('tab navigation (§7.1)', () => {
     const router = await renderRouter('app', { initialUrl: '/' });
 
     expect(router.getPathname()).toBe('/');
-    for (const label of ['Sorteo', 'Tablero', 'Historial', 'Ajustes']) {
-      expect(screen.getByText(label)).toBeOnTheScreen();
+    // The bar labels each tab; "Tablero"/"Historial" also label the secondary
+    // row, so the bar is asserted through its buttons.
+    for (const [testID, label] of [
+      ['tab-sorteo', 'Sorteo'],
+      ['tab-tablero', 'Tablero'],
+      ['tab-historial', 'Historial'],
+      ['tab-ajustes', 'Ajustes'],
+    ] as const) {
+      expect(screen.getByTestId(testID)).toBeOnTheScreen();
+      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     }
     expect(screen.getByTestId('draw-screen')).toBeOnTheScreen();
   });
@@ -44,14 +52,27 @@ describe('tab navigation (§7.1)', () => {
   it('reaches every tab from the bar', async () => {
     const router = await renderRouter('app', { initialUrl: '/' });
 
-    for (const [label, path] of [
-      ['Tablero', '/board'],
-      ['Historial', '/history'],
-      ['Ajustes', '/settings'],
-      ['Sorteo', '/'],
+    // Pressed by testID: "Tablero" and "Historial" also label the secondary row
+    // of the draw screen, so a text query would be ambiguous (§7.2).
+    for (const [testID, path] of [
+      ['tab-tablero', '/board'],
+      ['tab-historial', '/history'],
+      ['tab-ajustes', '/settings'],
+      ['tab-sorteo', '/'],
     ] as const) {
-      await fireEvent.press(screen.getByText(label));
+      await fireEvent.press(screen.getByTestId(testID));
       expect(router.getPathname()).toBe(path);
     }
+  });
+
+  it('navigates from the draw screen secondary row', async () => {
+    const router = await renderRouter('app', { initialUrl: '/' });
+
+    await fireEvent.press(screen.getByTestId('draw-history'));
+    expect(router.getPathname()).toBe('/history');
+
+    await fireEvent.press(screen.getByTestId('tab-sorteo'));
+    await fireEvent.press(screen.getByTestId('draw-board'));
+    expect(router.getPathname()).toBe('/board');
   });
 });

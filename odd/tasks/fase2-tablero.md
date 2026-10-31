@@ -58,7 +58,7 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
 | T4  | Grilla en dominio            | S3               | inline | hecho     | TBD    |
 | T5  | Pantalla Tablero             | S4               | inline | hecho     | TBD    |
 | T6  | Pantalla Historial           | S5               | inline | hecho     | TBD    |
-| T7  | Deshacer end-to-end + toast  | S6, S9           | inline | pendiente | —      |
+| T7  | Deshacer end-to-end + toast  | S6, S9           | inline | hecho     | TBD    |
 | T8  | ConfirmDialog + Ajustes stub | S7, S8           | inline | pendiente | —      |
 | T9  | E2E, CI y docs               | S11, S12         | inline | pendiente | —      |
 
@@ -146,3 +146,16 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
   `await` la pantalla no reflejaba el cambio de estado.
   Verificación: `pnpm test:ui` 34/34 · `pnpm test:coverage` 117/117 al 100 % ·
   `typecheck`, `lint`, `format:check` limpios.
+
+- **L11 (2026-10-31, T7 hecho):** `undoBall` devuelve `number | null` (la bola que
+  vuelve al bombo, o `null` si no hubo historial, estaba ocupado o falló la escritura);
+  el toast es estado transitorio de la pantalla, nunca del store (§5.4). `src/ui/Toast.tsx`
+  propio (ADR-12), `TOAST_MS = 2500`, `accessibilityLiveRegion="polite"` y reemplazo en
+  vez de cola. Fila secundaria `Deshacer · Historial · Tablero` con targets de 44 pt;
+  `Deshacer` deshabilitado sin historial y `Historial`/`Tablero` con `router.push`.
+  Copy exacto: `Bola 67 devuelta al bombo`.
+  Hallazgo: con la fila secundaria, `getByText('Tablero')` y `getByText('Historial')` son
+  ambiguos en `/`; la barra pasa a asertarse por `tabBarButtonTestID`.
+  Verificación: `pnpm test:ui` 45/45 (incluye el toast con duración inyectada, la
+  navegación desde la fila y el caso de escritura fallida sin toast) ·
+  `pnpm test:coverage` 117/117 al 100 % · `typecheck`, `lint`, `format:check` limpios.
