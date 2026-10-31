@@ -56,7 +56,7 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
 | T2  | `gameStore` compartido       | S1, S6 (dominio) | inline | hecho     | TBD    |
 | T3  | Navegación por pestañas      | S2               | inline | hecho     | TBD    |
 | T4  | Grilla en dominio            | S3               | inline | hecho     | TBD    |
-| T5  | Pantalla Tablero             | S4               | inline | pendiente | —      |
+| T5  | Pantalla Tablero             | S4               | inline | hecho     | TBD    |
 | T6  | Pantalla Historial           | S5               | inline | pendiente | —      |
 | T7  | Deshacer end-to-end + toast  | S6, S9           | inline | pendiente | —      |
 | T8  | ConfirmDialog + Ajustes stub | S7, S8           | inline | pendiente | —      |
@@ -121,3 +121,16 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
   degenerado (min > max → tablero vacío, sin excepción).
   Verificación: `pnpm test:coverage` 117/117 con **100 % en `src/core/board`** (el gate
   global sigue en 100 %).
+
+- **L9 (2026-10-31, T5 hecho):** `src/features/board/{useBoard.ts,BoardScreen.tsx}`.
+  `useBoard` compone store + `@/core/board/grid` en un `useMemo`; la pantalla solo pinta.
+  Celda: relleno + tachado + `✓` (tres señales, ninguna solo color) y `accessibilityLabel`
+  `"B, 12, extraída en la posición 3"` / `"90, pendiente"`. `React.memo` por celda.
+  Encabezados `B I N G O` fuera del `ScrollView` (por eso son sticky) y ocultos al lector
+  de pantalla a propósito: cada celda ya dice su letra.
+  Auto-scroll: se consulta `AccessibilityInfo.isReduceMotionEnabled()` antes de animar.
+  Nota honesta: el offset del scroll no se testea (el ref nativo no es observable en
+  Jest); se cubre en el dispositivo con los flujos 3 y 4, y lo que sí se testea es que la
+  preferencia se consulta y que la celda recién extraída anuncia su posición.
+  Verificación: `pnpm test:ui` 26/26 · `pnpm test:coverage` 117/117 al 100 % ·
+  `typecheck`, `lint`, `format:check` limpios.
