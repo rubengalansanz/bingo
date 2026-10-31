@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 
 import { formatLabel } from '@/core/engine/range';
+import type { Banner } from '@/features/game/gameStore';
 import { useGameStore } from '@/features/game/useGame';
+import { useSettingsSelector } from '@/features/settings/useSettings';
 
 /**
  * History view model (§7.4).
@@ -13,8 +15,6 @@ import { useGameStore } from '@/features/game/useGame';
  *
  * Only one row can have `isLast`: the badge and the inline undo live there.
  */
-
-export const HISTORY_EMPTY = 'Todavía no salió ninguna bola.';
 
 /** Fixed row height: `getItemLayout` needs it to keep the scroll stable. */
 export const ROW_HEIGHT = 72;
@@ -42,33 +42,47 @@ function pad(value: number): string {
 
 export type HistoryViewModel = {
   readonly phase: 'loading' | 'ready' | 'error';
+  readonly banner: Banner | null;
   readonly rows: HistoryRow[];
   readonly drawn: number;
+  /** Every number of the range has been drawn. */
+  readonly complete: boolean;
   readonly onUndo: () => void;
 };
 
 export function useHistory(): HistoryViewModel {
   const phase = useGameStore((state) => state.phase);
   const game = useGameStore((state) => state.game);
+  const banner = useGameStore((state) => state.banner);
   const onUndo = useGameStore((state) => state.undoBall);
+  // Display preference applied live, so board and history always agree (§3.4).
+  const labelMode = useSettingsSelector((state) => state.settings.labelMode);
 
   const rows = useMemo(() => {
     if (game === null) {
       return [];
     }
     const last = game.history.length;
+    const range = { ...game.range, labelMode };
     return game.history
       .slice()
       .reverse()
       .map((record) => ({
         position: record.position,
         number: record.number,
-        label: formatLabel(record.number, game.range),
+        label: formatLabel(record.number, range),
         drawnAt: record.drawnAt,
         time: formatClock(record.drawnAt),
         isLast: record.position === last,
       }));
-  }, [game]);
+  }, [game, labelMode]);
 
-  return { phase, rows, drawn: rows.length, onUndo };
+  return {
+    phase,
+    banner,
+    rows,
+    drawn: rows.length,
+    complete: game?.status === 'exhausted',
+    onUndo,
+  };
 }

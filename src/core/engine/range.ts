@@ -1,6 +1,6 @@
 import { type Result, err, ok } from '../result';
 
-import type { RangeConfig, RangePreset } from './types';
+import type { LabelMode, RangeConfig, RangePreset } from './types';
 
 /**
  * Number range: presets, validation and labelling (plan §3).
@@ -49,6 +49,28 @@ export function validateRange(min: number, max: number): Result<number, RangeErr
     return err('MAX_EXCEEDED');
   }
   return ok(max - min + 1);
+}
+
+/**
+ * A range shorter than this is legal but warned about (§3.2): the game ends in
+ * fewer than ten draws. Warning only — it never blocks the form.
+ */
+export const RANGE_WARNING_TOTAL = 10;
+
+/** Every preset id, in picker order; `custom` is the free form (§3.1). */
+export const RANGE_PRESETS = ['eu90', 'us75', 'n80', 'custom'] as const;
+
+/** The fixed range of a preset, with the label preference applied (§3.1, §3.4). */
+export function rangeForPreset(
+  preset: Exclude<RangePreset, 'custom'>,
+  labelMode: LabelMode,
+): RangeConfig {
+  return { ...PRESETS[preset], labelMode };
+}
+
+/** A free range between two bounds; validity is still `validateRange`'s job. */
+export function customRange(min: number, max: number, labelMode: LabelMode): RangeConfig {
+  return { preset: 'custom', min, max, labelMode };
 }
 
 /** How many balls the range holds: `max - min + 1` (§3.2, "Serán 64 bolas"). */

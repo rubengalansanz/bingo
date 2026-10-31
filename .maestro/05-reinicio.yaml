@@ -1,0 +1,38 @@
+appId: com.bingobombo.app
+---
+# Flow 5 (plan §8.5): five draws → Ajustes → Reiniciar → confirm → 0 of 90 and
+# a clean board. The confirmation carries the real number of lost draws (§7.6).
+- launchApp:
+    clearState: true
+
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+- assertVisible: '5 de 90'
+
+- tapOn:
+    id: 'tab-tablero'
+- assertVisible: '5 extraídas · 85 pendientes'
+
+- tapOn:
+    id: 'tab-ajustes'
+- assertVisible: 'PARTIDA'
+- tapOn:
+    id: 'settings-restart'
+
+- assertVisible: '¿Reiniciar la partida?'
+- assertVisible: 'Se perderán las 5 extracciones. El historial de esta partida se archivará.'
+- tapOn:
+    id: 'confirm-confirm'
+
+- tapOn:
+    id: 'tab-sorteo'
+- assertVisible: '0 de 90'
+- assertVisible: 'Tocá «Sacar bola» para empezar.'
+
+- tapOn:
+    id: 'tab-tablero'
+- assertVisible: '0 extraídas · 90 pendientes'
+- assertVisible: 'Todavía no salió ninguna bola'

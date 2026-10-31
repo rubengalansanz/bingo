@@ -42,5 +42,10 @@ jobs:
       - name: Test (engine + properties, with coverage)
         run: pnpm test:coverage
 
+      # Component/store suite (jest-expo). Separate project on purpose: it never
+      # runs under the 100% coverage gate of src/core.
+      - name: Test (components and store)
+        run: pnpm test:ui
+
       - name: Expo doctor
         run: npx expo-doctor

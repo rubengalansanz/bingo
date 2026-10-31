@@ -25,6 +25,8 @@ type Harness = {
   failWrites: (fail: boolean) => void;
   /** Persists a game with `draws` balls already out — a game recovered on boot. */
   seed: (draws: number, cfg?: RangeConfig) => Game;
+  /** Simulates the range stored as a preference in Ajustes (§3.3). */
+  preferRange: (cfg: RangeConfig) => void;
 };
 
 function harness(): Harness {
@@ -37,6 +39,7 @@ function harness(): Harness {
   const rng = mulberry32(SEED);
   let failing = false;
   let clock = START;
+  let preferred: RangeConfig = PRESETS.eu90;
 
   const store = createGameStore({
     openRepository: () => {
@@ -47,6 +50,7 @@ function harness(): Harness {
     },
     now: () => clock,
     rng: () => rng,
+    readRange: () => preferred,
   });
 
   return {
@@ -69,6 +73,9 @@ function harness(): Harness {
       repo.saveNew(game);
       return game;
     },
+    preferRange: (cfg) => {
+      preferred = cfg;
+    },
   };
 }
 
@@ -77,6 +84,18 @@ function state(store: Harness['store']): GameStore {
 }
 
 describe('gameStore — boot (§5.4, §7.7)', () => {
+  it('creates the first game with the range stored as a preference (§3.3)', async () => {
+    const { store, repo, preferRange } = harness();
+    const range: RangeConfig = { preset: 'custom', min: 1, max: 5, labelMode: 'number' };
+    preferRange(range);
+
+    await state(store).boot();
+
+    expect(state(store).game?.range).toEqual(range);
+    expect(state(store).game?.pool).toHaveLength(5);
+    expect(repo.loadCurrent()?.range).toEqual(range);
+  });
+
   it('creates and persists the first game when there is none', async () => {
     const { store, repo } = harness();
 
@@ -110,10 +129,7 @@ describe('gameStore — boot (§5.4, §7.7)', () => {
     await state(store).boot();
 
     expect(state(store).phase).toBe('ready');
-    expect(state(store).banner).toEqual({
-      tone: 'info',
-      text: 'Se reparó el estado de la partida.',
-    });
+    expect(state(store).banner).toEqual({ tone: 'info', code: 'repair' });
     expect(state(store).game?.history).toHaveLength(damaged.history.length);
     // Two balls are out, so a healthy pool has 88 numbers left (INV-1).
     expect(state(store).game?.pool).toHaveLength(88);
@@ -128,10 +144,7 @@ describe('gameStore — boot (§5.4, §7.7)', () => {
 
     expect(state(store).phase).toBe('error');
     expect(state(store).game).toBeNull();
-    expect(state(store).banner).toEqual({
-      tone: 'error',
-      text: 'No se pudo cargar la partida guardada.',
-    });
+    expect(state(store).banner).toEqual({ tone: 'error', code: 'bootFailed' });
   });
 });
 
@@ -173,10 +186,7 @@ describe('gameStore — draw (§2.5, §7.9)', () => {
     state(store).drawBall();
 
     expect(state(store).game).toBe(before);
-    expect(state(store).banner).toEqual({
-      tone: 'error',
-      text: 'No se pudo guardar la extracción.',
-    });
+    expect(state(store).banner).toEqual({ tone: 'error', code: 'drawFailed' });
   });
 
   it('ignores a second tap while the lock is held, then releases it', async () => {
@@ -277,10 +287,7 @@ describe('gameStore — undo (§2.6, INV-1)', () => {
     expect(state(store).undoBall()).toBeNull();
 
     expect(state(store).game).toBe(before);
-    expect(state(store).banner).toEqual({
-      tone: 'error',
-      text: 'No se pudo deshacer la extracción.',
-    });
+    expect(state(store).banner).toEqual({ tone: 'error', code: 'undoFailed' });
   });
 });
 
@@ -301,6 +308,21 @@ describe('gameStore — new game (§2.4, §7.6)', () => {
     expect(repo.loadCurrent()?.id).toBe(state(store).game?.id);
   });
 
+  it('starts the new game over an explicit range from Ajustes (§3.3)', async () => {
+    const { store, repo, seed } = harness();
+    seed(3);
+    await state(store).boot();
+    const range: RangeConfig = { preset: 'custom', min: 1, max: 5, labelMode: 'number' };
+
+    state(store).startNewGame(range);
+
+    expect(state(store).game?.range).toEqual(range);
+    expect(state(store).game?.history).toHaveLength(0);
+    expect(state(store).game?.pool).toHaveLength(5);
+    expect(state(store).game?.status).toBe('running');
+    expect(repo.loadCurrent()?.range).toEqual(range);
+  });
+
   it('keeps the current game and reports when the write fails', async () => {
     const { store, failWrites } = harness();
     await state(store).boot();
@@ -310,9 +332,6 @@ describe('gameStore — new game (§2.4, §7.6)', () => {
     state(store).startNewGame();
 
     expect(state(store).game).toBe(before);
-    expect(state(store).banner).toEqual({
-      tone: 'error',
-      text: 'No se pudo crear la partida.',
-    });
+    expect(state(store).banner).toEqual({ tone: 'error', code: 'newGameFailed' });
   });
 });

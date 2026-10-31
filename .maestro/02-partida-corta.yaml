@@ -1,0 +1,54 @@
+appId: com.bingobombo.app
+---
+# Flow 2 (plan §8.5): a short 1-5 game. The range is a preference, so changing
+# it with a running game asks first (§3.3); after confirming, five draws finish
+# the game and the primary action becomes "Nueva partida" (§2.4).
+- launchApp:
+    clearState: true
+
+- assertVisible: 'Sacar bola'
+
+- tapOn:
+    id: 'tab-ajustes'
+- tapOn:
+    id: 'settings-range'
+- tapOn:
+    id: 'range-preset-custom'
+
+# Custom bounds: clear the prefilled 1-90 and type 1-5.
+- tapOn:
+    id: 'range-min'
+- eraseText: 3
+- inputText: '1'
+- tapOn:
+    id: 'range-max'
+- eraseText: 3
+- inputText: '5'
+
+- assertVisible: 'Serán 5 bolas'
+- assertVisible: 'Un rango tan corto termina la partida en 10 extracciones.'
+
+- tapOn:
+    id: 'range-apply'
+- assertVisible: 'Cambiar el rango reinicia la partida'
+- tapOn:
+    id: 'confirm-confirm'
+
+- tapOn:
+    id: 'tab-sorteo'
+- assertVisible: '0 de 5'
+
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+
+- assertVisible: '5 de 5'
+- assertVisible: 'Partida completa · 5 de 5'
+- assertVisible: 'Nueva partida'
+
+# The primary action starts a fresh game over the same short range.
+- tapOn: 'Nueva partida'
+- assertVisible: '0 de 5'
+- assertVisible: 'Tocá «Sacar bola» para empezar.'

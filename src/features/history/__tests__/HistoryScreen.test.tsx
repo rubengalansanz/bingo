@@ -7,7 +7,9 @@ import type { Game, RangeConfig } from '@/core/engine/types';
 import type { GameRepository } from '@/core/db/repositories/game.repository';
 
 import { gameStore } from '@/features/game/useGame';
-import { formatClock, HISTORY_EMPTY } from '../useHistory';
+import { MESSAGES } from '@/core/i18n/messages';
+
+import { formatClock } from '../useHistory';
 import { HistoryScreen } from '../HistoryScreen';
 
 /**
@@ -105,8 +107,31 @@ describe('HistoryScreen — empty state (§7.7)', () => {
     prime(gameWith(PRESETS.eu90, 0));
     await render(<HistoryScreen />);
 
-    expect(screen.getByText(HISTORY_EMPTY)).toBeOnTheScreen();
+    expect(screen.getByText(MESSAGES.es.history.empty)).toBeOnTheScreen();
     expect(screen.queryByTestId('history-undo')).toBeNull();
+  });
+});
+
+describe('HistoryScreen — complete and error states (§7.7)', () => {
+  it('announces a finished game above the full list', async () => {
+    prime(gameWith(PRESETS.eu90, 90));
+    await render(<HistoryScreen />);
+
+    expect(screen.getByText(MESSAGES.es.history.complete)).toBeOnTheScreen();
+    expect(screen.getByTestId('history-counter')).toHaveTextContent('90 extracciones');
+  });
+
+  it('reports the error instead of claiming nothing was drawn', async () => {
+    gameStore.setState({
+      phase: 'error',
+      game: null,
+      banner: { tone: 'error', code: 'bootFailed' },
+      busy: false,
+    });
+    await render(<HistoryScreen />);
+
+    expect(screen.getByText(MESSAGES.es.banners.bootFailed)).toBeOnTheScreen();
+    expect(screen.queryByText(MESSAGES.es.history.empty)).toBeNull();
   });
 });
 

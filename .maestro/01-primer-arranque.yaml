@@ -1,0 +1,36 @@
+appId: com.bingobombo.app
+---
+# Flow 1 (plan §8.5) + tab bar smoke (U3, §7.1): a clean install lands on
+# Sorteo, one tap draws a ball, and the four tabs are present and reachable.
+- launchApp:
+    clearState: true
+
+- assertVisible: 'Sacar bola'
+- assertVisible: 'Tocá «Sacar bola» para empezar.'
+
+# The bar labels every tab; an icon alone would not be tappable for TalkBack.
+- assertVisible:
+    id: 'tab-sorteo'
+- assertVisible:
+    id: 'tab-tablero'
+- assertVisible:
+    id: 'tab-historial'
+- assertVisible:
+    id: 'tab-ajustes'
+
+- tapOn: 'Sacar bola'
+- assertVisible: '1 de 90'
+
+# Each tab opens, and Sorteo is always the way back.
+- tapOn:
+    id: 'tab-tablero'
+- assertVisible: 'Tablero'
+- tapOn:
+    id: 'tab-historial'
+- assertVisible: 'Historial'
+- tapOn:
+    id: 'tab-ajustes'
+- assertVisible: 'PARTIDA'
+- tapOn:
+    id: 'tab-sorteo'
+- assertVisible: '1 de 90'

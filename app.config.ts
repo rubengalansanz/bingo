@@ -3,15 +3,20 @@ import type { ExpoConfig } from 'expo/config';
 /**
  * Dynamic Expo config (plan-bingo §5.7).
  *
- * Two rules enforced here:
+ * Rules enforced here:
  *  - The app is offline-only: no network permissions, no analytics (§9.3).
- *    NOTE: `android.blockedPermissions: ['android.permission.INTERNET']` is NOT
- *    enabled yet on purpose: it would break the dev client (Metro) and EAS
- *    Update. It is a Phase 4 production-profile concern.
+ *    `blockedPermissions` is applied **only** to production builds: blocking
+ *    INTERNET in a development build would break Metro and EAS Update, which
+ *    is why the flag is gated by the build profile instead of shipped on.
  *  - Orientation is locked to portrait on phones (§7.8).
+ *  - Audio is playback-only: no microphone, no recording permission and no
+ *    background service, because the app only plays a bundled cue (§4.4).
  */
 
 const BUNDLE_ID = 'com.bingobombo.app'; // TODO(phase-4): confirm before the first store upload.
+
+/** `EAS_BUILD_PROFILE` is set by EAS Build; local prebuilds keep network. */
+const IS_PRODUCTION_BUILD = process.env.EAS_BUILD_PROFILE === 'production';
 
 const config: ExpoConfig = {
   name: 'Bingo',
@@ -35,8 +40,21 @@ const config: ExpoConfig = {
       monochromeImage: './assets/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    // Verifiable "no data leaves the device": the production APK cannot open a
+    // socket at all (§9.3). Never set outside a production build.
+    ...(IS_PRODUCTION_BUILD ? { blockedPermissions: ['android.permission.INTERNET'] } : undefined),
   },
-  plugins: ['expo-router'],
+  plugins: [
+    'expo-router',
+    [
+      'expo-audio',
+      {
+        microphonePermission: false,
+        recordAudioAndroid: false,
+        enableBackgroundPlayback: false,
+      },
+    ],
+  ],
   experiments: {
     typedRoutes: true,
   },

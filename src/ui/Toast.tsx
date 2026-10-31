@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { COLORS } from '@/ui/colors';
+import { useTheme } from '@/features/theme/ThemeProvider';
 
 /**
  * Minimal toast (ADR-12: own components, no toast library).
@@ -50,13 +50,18 @@ export function useToast(durationMs: number = TOAST_MS): ToastController {
 
 /** Renders nothing while there is no message. */
 export function Toast({ message }: { readonly message: string | null }) {
+  const theme = useTheme();
+
   if (message === null) {
     return null;
   }
 
   return (
     <View
-      style={styles.root}
+      style={[
+        styles.root,
+        { backgroundColor: theme.colors.surfaceStrong, borderColor: theme.colors.border },
+      ]}
       pointerEvents="none"
       accessible
       accessibilityRole="alert"
@@ -64,7 +69,7 @@ export function Toast({ message }: { readonly message: string | null }) {
       accessibilityLabel={message}
       testID="toast"
     >
-      <Text style={styles.text}>{message}</Text>
+      <Text style={[styles.text, { color: theme.colors.text }]}>{message}</Text>
     </View>
   );
 }
@@ -79,9 +84,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: COLORS.surfaceStrong,
     borderWidth: 1,
-    borderColor: COLORS.line,
   },
-  text: { color: COLORS.text, fontSize: 15, fontWeight: '600', textAlign: 'center' },
+  text: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
 });

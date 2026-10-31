@@ -1,0 +1,25 @@
+appId: com.bingobombo.app
+---
+# Flow 4 (plan §8.5): three draws → undo → 2 of 90 → the next draw is exactly
+# the ball that was undone (§2.6, INV-1). The number is captured before the
+# undo and asserted after the redraw, so the check survives a random shuffle.
+- launchApp:
+    clearState: true
+
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+- assertVisible: '3 de 90'
+
+- copyTextFrom:
+    id: 'draw-ball'
+- runScript: scripts/capture-ball.js
+
+- tapOn:
+    id: 'draw-undo'
+- assertVisible: '2 de 90'
+- assertVisible: 'devuelta al bombo'
+
+- tapOn: 'Sacar bola'
+- assertVisible: '3 de 90'
+- assertVisible: 'Última bola: ${output.captured}'

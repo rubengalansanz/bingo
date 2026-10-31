@@ -2,8 +2,12 @@ import {
   DEFAULT_RANGE,
   PRESETS,
   RANGE_MAX_TOTAL,
+  RANGE_PRESETS,
+  RANGE_WARNING_TOTAL,
+  customRange,
   formatLabel,
   formatRangeSpan,
+  rangeForPreset,
   rangeNumbers,
   rangeTotal,
   validateRange,
@@ -36,6 +40,33 @@ describe('presets (§3.1)', () => {
 
   it('defaults the first launch to the European 1–90 game (§7.7)', () => {
     expect(DEFAULT_RANGE).toBe(PRESETS.eu90);
+  });
+
+  it('builds a preset with the chosen label mode (§3.4)', () => {
+    expect(rangeForPreset('us75', 'number')).toEqual({
+      preset: 'us75',
+      min: 1,
+      max: 75,
+      labelMode: 'number',
+    });
+    expect(rangeForPreset('eu90', 'letter-number')).toEqual({
+      ...PRESETS.eu90,
+      labelMode: 'letter-number',
+    });
+  });
+
+  it('builds a free range as the custom preset (§3.2)', () => {
+    expect(customRange(1, 5, 'number')).toEqual({
+      preset: 'custom',
+      min: 1,
+      max: 5,
+      labelMode: 'number',
+    });
+  });
+
+  it('lists the presets in picker order and warns below ten balls (§3.2)', () => {
+    expect(RANGE_PRESETS).toEqual(['eu90', 'us75', 'n80', 'custom']);
+    expect(RANGE_WARNING_TOTAL).toBe(10);
   });
 });
 

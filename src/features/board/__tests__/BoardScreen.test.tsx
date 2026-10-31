@@ -6,7 +6,7 @@ import { mulberry32 } from '@/core/engine/rng';
 import type { Game, RangeConfig } from '@/core/engine/types';
 
 import { gameStore } from '@/features/game/useGame';
-import { BOARD_EMPTY } from '../useBoard';
+import { MESSAGES } from '@/core/i18n/messages';
 import { BoardScreen } from '../BoardScreen';
 
 /**
@@ -49,7 +49,7 @@ describe('BoardScreen — layout (§7.3)', () => {
     prime(gameWith(PRESETS.eu90, 0));
     await render(<BoardScreen />);
 
-    expect(screen.getByText(BOARD_EMPTY)).toBeOnTheScreen();
+    expect(screen.getByText(MESSAGES.es.board.empty)).toBeOnTheScreen();
     expect(screen.getByTestId('board-counter')).toHaveTextContent('0 extraídas · 90 pendientes');
   });
 
@@ -69,6 +69,29 @@ describe('BoardScreen — layout (§7.3)', () => {
     await render(<BoardScreen />);
 
     expect(screen.queryByText('B', { includeHiddenElements: true })).toBeNull();
+  });
+});
+
+describe('BoardScreen — complete and error states (§7.7)', () => {
+  it('marks a finished game instead of leaving 90 pending cells silent', async () => {
+    prime(gameWith(PRESETS.eu90, 90));
+    await render(<BoardScreen />);
+
+    expect(screen.getByText(MESSAGES.es.board.complete)).toBeOnTheScreen();
+    expect(screen.getByTestId('board-counter')).toHaveTextContent('90 extraídas · 0 pendientes');
+  });
+
+  it('reports the error instead of pretending the board is empty', async () => {
+    gameStore.setState({
+      phase: 'error',
+      game: null,
+      banner: { tone: 'error', code: 'bootFailed' },
+      busy: false,
+    });
+    await render(<BoardScreen />);
+
+    expect(screen.getByText(MESSAGES.es.banners.bootFailed)).toBeOnTheScreen();
+    expect(screen.queryByText(MESSAGES.es.board.empty)).toBeNull();
   });
 });
 

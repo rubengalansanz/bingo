@@ -1,0 +1,35 @@
+appId: com.bingobombo.app
+---
+# Flow 6 (plan §8.5): the range cannot change under a running game. Ajustes →
+# Rango → 75 shows the destructive dialog with the real counts; Cancelar leaves
+# the game exactly where it was (§3.3, INV-1).
+- launchApp:
+    clearState: true
+
+- tapOn: 'Sacar bola'
+- assertVisible: '1 de 90'
+
+- tapOn:
+    id: 'tab-ajustes'
+- tapOn:
+    id: 'settings-range'
+- tapOn:
+    id: 'range-preset-us75'
+- tapOn:
+    id: 'range-apply'
+
+- assertVisible: 'Cambiar el rango reinicia la partida'
+- assertVisible: 'De 90 a 75 bolas. Se perderá 1 extracción.'
+
+- tapOn:
+    id: 'confirm-cancel'
+- assertNotVisible: 'Cambiar el rango reinicia la partida'
+
+# Nothing changed: same counter and same board.
+- tapOn:
+    id: 'tab-sorteo'
+- assertVisible: '1 de 90'
+
+- tapOn:
+    id: 'tab-tablero'
+- assertVisible: '1 extraídas · 89 pendientes'

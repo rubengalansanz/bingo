@@ -4,7 +4,8 @@ import type { GameRepository } from '@/core/db/repositories/game.repository';
 import { createGame, draw, integrityCheck, undo } from '@/core/engine/game';
 import { DEFAULT_RANGE, rangeTotal } from '@/core/engine/range';
 import type { Rng } from '@/core/engine/rng';
-import type { Game } from '@/core/engine/types';
+import type { Game, RangeConfig } from '@/core/engine/types';
+import type { BannerCode } from '@/core/i18n/messages';
 
 /**
  * The one game in memory (plan §5.4, ADR-07).
@@ -24,9 +25,15 @@ import type { Game } from '@/core/engine/types';
  * imports no native code and is testable against a real SQLite in Node.
  */
 
+/**
+ * A message for the UI, held as a **code** plus its tone.
+ *
+ * The store never formats a sentence: the copy belongs to the language
+ * catalog, so the same failure reads correctly in Spanish and in English.
+ */
 export type Banner = {
   readonly tone: 'info' | 'error';
-  readonly text: string;
+  readonly code: BannerCode;
 };
 
 export type GameState = {
@@ -48,7 +55,8 @@ export type GameActions = {
    * UI state and never lives in the store (§5.4).
    */
   undoBall: () => number | null;
-  startNewGame: () => void;
+  /** Fresh game; without a range it keeps the current one (restart, §7.6). */
+  startNewGame: (range?: RangeConfig) => void;
 };
 
 export type GameStore = GameState & GameActions;
@@ -63,18 +71,15 @@ export type GameStoreDeps = {
   now: () => number;
   /** Injected randomness (§2.8). */
   rng: () => Rng;
+  /**
+   * Range persisted as a preference (§3.3). Injected so the store keeps no
+   * dependency on the settings store: the app binding wires both.
+   */
+  readRange: () => RangeConfig;
 };
 
 /** How long the primary action stays disabled after a commit (§7.9). */
 export const BUSY_MS = 300;
-
-const MESSAGES = {
-  bootFailed: 'No se pudo cargar la partida guardada.',
-  repair: 'Se reparó el estado de la partida.',
-  drawFailed: 'No se pudo guardar la extracción.',
-  undoFailed: 'No se pudo deshacer la extracción.',
-  newGameFailed: 'No se pudo crear la partida.',
-} as const;
 
 export function createGameStore(deps: GameStoreDeps): StoreApi<GameStore> {
   let booted: Promise<void> | null = null;
@@ -106,7 +111,7 @@ export function createGameStore(deps: GameStoreDeps): StoreApi<GameStore> {
             let banner: Banner | null = null;
 
             if (game === null) {
-              game = createGame(DEFAULT_RANGE, deps.rng(), deps.now());
+              game = createGame(deps.readRange(), deps.rng(), deps.now());
               repo.saveNew(game);
             } else {
               const report = integrityCheck(game, deps.rng());
@@ -114,7 +119,7 @@ export function createGameStore(deps: GameStoreDeps): StoreApi<GameStore> {
                 // Persisted immediately: the next boot is already clean (§2.5).
                 repo.save(report.repaired);
                 game = report.repaired;
-                banner = { tone: 'info', text: MESSAGES.repair };
+                banner = { tone: 'info', code: 'repair' };
               }
             }
 
@@ -123,7 +128,7 @@ export function createGameStore(deps: GameStoreDeps): StoreApi<GameStore> {
             set({
               phase: 'error',
               game: null,
-              banner: { tone: 'error', text: MESSAGES.bootFailed },
+              banner: { tone: 'error', code: 'bootFailed' },
               busy: false,
             });
           }
@@ -149,7 +154,7 @@ export function createGameStore(deps: GameStoreDeps): StoreApi<GameStore> {
           deps.openRepository().commitDraw(result.value.game, result.value.record);
         } catch {
           // Rollback is implicit: the in-memory game was never updated.
-          set({ banner: { tone: 'error', text: MESSAGES.drawFailed } });
+          set({ banner: { tone: 'error', code: 'drawFailed' } });
           return;
         }
 
@@ -176,7 +181,7 @@ export function createGameStore(deps: GameStoreDeps): StoreApi<GameStore> {
           // there is no instant where history and pool disagree (INV-1).
           deps.openRepository().save(result.value.game);
         } catch {
-          set({ banner: { tone: 'error', text: MESSAGES.undoFailed } });
+          set({ banner: { tone: 'error', code: 'undoFailed' } });
           return null;
         }
 
@@ -184,19 +189,20 @@ export function createGameStore(deps: GameStoreDeps): StoreApi<GameStore> {
         return result.value.undone.number;
       },
 
-      startNewGame: () => {
+      startNewGame: (range) => {
         const game = canMutate();
         if (game === null) {
           return;
         }
 
         try {
-          // Same range, fresh id: the previous game stays archived (§2.4).
-          const fresh = createGame(game.range, deps.rng(), deps.now());
+          // Same range by default, fresh id: the previous game stays archived
+          // (§2.4). A range comes from the Ajustes form after its dialog (§3.3).
+          const fresh = createGame(range ?? game.range, deps.rng(), deps.now());
           deps.openRepository().saveNew(fresh);
           set({ game: fresh, banner: null, busy: false });
         } catch {
-          set({ banner: { tone: 'error', text: MESSAGES.newGameFailed } });
+          set({ banner: { tone: 'error', code: 'newGameFailed' } });
         }
       },
     };

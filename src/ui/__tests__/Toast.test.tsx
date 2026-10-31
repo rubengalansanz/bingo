@@ -8,7 +8,10 @@ import { Toast, TOAST_MS, useToast } from '../Toast';
  * queued. The duration is injected here so the suite does not wait 2.5 s.
  */
 
-const SHORT_MS = 30;
+// Long enough that the toast is still mounted when the synchronous assertions
+// run on a loaded CI box (at 30 ms it had already expired), short enough that
+// `waitFor` sees it disappear. No assertion is relaxed by this.
+const SHORT_MS = 150;
 
 function Host({ message = 'Bola 67 devuelta al bombo' }: { readonly message?: string }) {
   const toast = useToast(SHORT_MS);
@@ -38,7 +41,7 @@ describe('Toast (§7.4)', () => {
     expect(toast.props.accessibilityLiveRegion).toBe('polite');
     expect(toast.props.accessibilityLabel).toBe('Bola 67 devuelta al bombo');
 
-    await waitFor(() => expect(screen.queryByTestId('toast')).toBeNull());
+    await waitFor(() => expect(screen.queryByTestId('toast')).toBeNull(), { timeout: 2000 });
   });
 
   it('replaces the current message instead of queueing a second one', async () => {

@@ -1,0 +1,27 @@
+appId: com.bingobombo.app
+---
+# Flow 3 (plan §8.5): three draws, kill the app, reopen, and the counter is
+# still 3 of 90 with the third ball on screen. This is the E2E half of the
+# "commit before animating" decision (§2.5): the ball is in SQLite before it
+# is ever shown, so a killed process cannot lose a draw.
+- launchApp:
+    clearState: true
+
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+- tapOn: 'Sacar bola'
+- assertVisible: '3 de 90'
+
+# Remember the third ball so the assertion after reopening is about identity,
+# not just about the counter.
+- copyTextFrom:
+    id: 'draw-ball'
+- runScript: scripts/capture-ball.js
+
+# `stopApp` is Maestro's am force-stop: it kills the app without clearing data
+# (plan §8.5 asks for am force-stop / simctl terminate).
+- stopApp
+- launchApp
+
+- assertVisible: '3 de 90'
+- assertVisible: 'Última bola: ${output.captured}'

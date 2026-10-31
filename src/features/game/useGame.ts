@@ -1,6 +1,8 @@
 import { useStore } from 'zustand';
 
 import { cryptoRng } from '@/core/engine/rng';
+import type { RangeConfig } from '@/core/engine/types';
+import { settingsStore } from '@/features/settings/useSettings';
 import { gameRepository } from '@/shared/db/client';
 import { expoCryptoSource } from '@/shared/random/expoCryptoSource';
 
@@ -19,6 +21,8 @@ export const gameStore = createGameStore({
   openRepository: gameRepository,
   now: () => Date.now(),
   rng: () => cryptoRng(expoCryptoSource()),
+  // The first game and every "Nueva partida" materialise the saved range (§3.3).
+  readRange: () => settingsStore.getState().settings.rangeDraft,
 });
 
 /** Granular subscription: a screen re-renders only for what it selects. */
@@ -35,7 +39,8 @@ export type GameViewModel = GameState & {
   readonly onDraw: () => void;
   /** Returns the ball sent back to the bombo, or `null` if nothing happened. */
   readonly onUndo: () => number | null;
-  readonly onNewGame: () => void;
+  /** Fresh game; an explicit range is what the Ajustes form applies (§3.3). */
+  readonly onNewGame: (range?: RangeConfig) => void;
 };
 
 /**
