@@ -3,22 +3,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DEFAULT_RANGE, formatRangeSpan } from '@/core/engine/range';
 import { useGame } from '@/features/game/useGame';
+import { COLORS } from '@/ui/colors';
 
 /**
  * Draw screen, Phase 2 cut (plan §7.2): header, ball, counter, primary action and
  * the secondary row (undo · history · board). The game lives in the shared store
  * (`@/features/game/useGame`), so every tab shows the same match.
  */
-
-const COLORS = {
-  background: '#0E2A1E',
-  surface: '#16382A',
-  line: '#23573F',
-  text: '#F5F1E6',
-  muted: '#9DB8A8',
-  accent: '#E8C547',
-  danger: '#F2A6A6',
-};
 
 /**
  * Copy under the ball (§7.2): the first-launch hint while the board is empty,

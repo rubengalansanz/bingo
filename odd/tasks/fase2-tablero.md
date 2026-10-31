@@ -54,7 +54,7 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
 | --- | ---------------------------- | ---------------- | ------ | --------- | ------ |
 | T1  | Harness de tests de UI       | S10              | inline | hecho     | TBD    |
 | T2  | `gameStore` compartido       | S1, S6 (dominio) | inline | hecho     | TBD    |
-| T3  | Navegación por pestañas      | S2               | inline | pendiente | —      |
+| T3  | Navegación por pestañas      | S2               | inline | hecho     | TBD    |
 | T4  | Grilla en dominio            | S3               | inline | pendiente | —      |
 | T5  | Pantalla Tablero             | S4               | inline | pendiente | —      |
 | T6  | Pantalla Historial           | S5               | inline | pendiente | —      |
@@ -98,3 +98,18 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
   reactiva `exhausted`, fallo de undo; nueva partida archiva la anterior.
   Verificación: `pnpm test:ui` 16/16 · `pnpm test:coverage` 103/103 y 100 % ·
   `typecheck`, `lint`, `format:check` limpios.
+
+- **L7 (2026-10-31, T3 hecho):** `app/(tabs)/_layout.tsx` con 4 pestañas, iconos Ionicons
+  y altura `64 + insets.bottom`; `(tabs)/index.tsx` monta `DrawScreen`; `board.tsx`,
+  `history.tsx` y `settings.tsx` quedan como placeholders a reemplazar en T5, T6 y T8;
+  `app/+not-found.tsx`; se borra `app/index.tsx`. Paleta compartida temporal en
+  `src/ui/colors.ts` (Phase 3 la reemplaza con tokens).
+  Test nuevo `src/__tests__/navigation.test.tsx` con `renderRouter('app')` del árbol real:
+  arranca en `/` con las 4 pestañas visibles y navega a `/board`, `/history`,
+  `/settings` y de vuelta a `/`.
+  Hallazgos: `Ionicons` no acepta el `color` tipado del navegador (`string | number`) →
+  `color as string`; en Jest el icono no puede cargar su fuente (asset registry
+  ausente) → se mockea en `jest.ui.setup.js`.
+  `npx expo export --platform android`: compila y **empaqueta la TTF de Ionicons**
+  (389 KB en `.export-check/assets`), así que no hace falta recompilar el dev client.
+  Verificación: `pnpm test:ui` 18/18 · `typecheck`, `lint`, `format:check` limpios.
