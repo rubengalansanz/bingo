@@ -2,13 +2,12 @@ import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DEFAULT_RANGE, formatRangeSpan } from '@/core/engine/range';
-
-import { useGame } from './useGame';
+import { useGame } from '@/features/game/useGame';
 
 /**
- * Draw screen, Phase 1 cut (plan §7.2): header, ball, counter, primary action.
- * No themes (Phase 3), no animation or sound (Phase 4), no board/history/settings
- * tabs yet (Phase 2/3) — this is the screen that has to make `INV-1` visible.
+ * Draw screen, Phase 2 cut (plan §7.2): header, ball, counter, primary action and
+ * the secondary row (undo · history · board). The game lives in the shared store
+ * (`@/features/game/useGame`), so every tab shows the same match.
  */
 
 const COLORS = {

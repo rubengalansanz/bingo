@@ -1,12 +1,14 @@
-import { render, screen, waitFor } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 
 import type { GameRepository } from '@/core/db/repositories/game.repository';
 
 import { DrawScreen } from '../DrawScreen';
+import { gameStore } from '@/features/game/useGame';
 
 /**
- * Harness smoke test (Phase 2 U1): proves that a screen can render under
- * jest-expo + RNTL without touching the domain gate in `jest.config.js`.
+ * Harness smoke test (Phase 2 U1/T2): proves that a screen can render under
+ * jest-expo + RNTL without touching the domain gate in `jest.config.js`, and
+ * that the shared store boots the first game with no stored state.
  *
  * The database is mocked at the adapter boundary on purpose: a component test
  * asserts what the user sees, not what SQLite stores.
@@ -42,8 +44,11 @@ describe('DrawScreen (smoke)', () => {
     expect(screen.getByText('Sacar bola')).toBeOnTheScreen();
     expect(screen.getByText('—')).toBeOnTheScreen();
 
-    // First launch creates and persists a game before the screen is ready (§7.7).
-    await waitFor(() => expect(screen.getByText('0 de 90')).toBeOnTheScreen());
+    // First launch creates and persists a game before the screen is usable (§7.7).
+    await act(() => gameStore.getState().boot());
+
+    expect(screen.getByText('0 de 90')).toBeOnTheScreen();
+    expect(screen.getByText('Tocá «Sacar bola» para empezar.')).toBeOnTheScreen();
     expect(mockRepo.saveNew).toHaveBeenCalledTimes(1);
   });
 });

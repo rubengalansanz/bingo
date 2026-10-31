@@ -53,7 +53,7 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
 | ID  | Unidad                       | Specs            | Ruta   | Estado    | Commit |
 | --- | ---------------------------- | ---------------- | ------ | --------- | ------ |
 | T1  | Harness de tests de UI       | S10              | inline | hecho     | TBD    |
-| T2  | `gameStore` compartido       | S1, S6 (dominio) | inline | pendiente | —      |
+| T2  | `gameStore` compartido       | S1, S6 (dominio) | inline | hecho     | TBD    |
 | T3  | Navegación por pestañas      | S2               | inline | pendiente | —      |
 | T4  | Grilla en dominio            | S3               | inline | pendiente | —      |
 | T5  | Pantalla Tablero             | S4               | inline | pendiente | —      |
@@ -86,3 +86,15 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
   instalado): inconsistencia del SDK, no de esta fase.
   Verificación: `pnpm test:ui` 1/1 verde · `pnpm test:coverage` 103/103 y 100 % ·
   `pnpm typecheck`, `pnpm lint`, `pnpm format:check` limpios.
+
+- **L6 (2026-10-31, T2 hecho):** `src/features/game/gameStore.ts` (fábrica pura con
+  `openRepository`/`now`/`rng` inyectados, sin imports nativos) y
+  `src/features/game/useGame.ts` (singleton + `useGame()` como view model; `boot()` se
+  dispara una vez desde `app/_layout.tsx`). `src/features/draw/useGame.ts` eliminado.
+  16 tests de UI en total, con repositorio real sobre better-sqlite3: boot crea, boot
+  repara y persiste, boot idempotente, fallo de repo → fase `error`; draw commitea antes
+  de exponer, fallo de commit deja el estado intacto, lock de 300 ms, bombo vacío;
+  undo persiste y sobrevive recarga, la próxima bola es la deshecha, no-op sin historial,
+  reactiva `exhausted`, fallo de undo; nueva partida archiva la anterior.
+  Verificación: `pnpm test:ui` 16/16 · `pnpm test:coverage` 103/103 y 100 % ·
+  `typecheck`, `lint`, `format:check` limpios.
