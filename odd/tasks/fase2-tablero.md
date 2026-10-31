@@ -55,7 +55,7 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
 | T1  | Harness de tests de UI       | S10              | inline | hecho     | TBD    |
 | T2  | `gameStore` compartido       | S1, S6 (dominio) | inline | hecho     | TBD    |
 | T3  | Navegación por pestañas      | S2               | inline | hecho     | TBD    |
-| T4  | Grilla en dominio            | S3               | inline | pendiente | —      |
+| T4  | Grilla en dominio            | S3               | inline | hecho     | TBD    |
 | T5  | Pantalla Tablero             | S4               | inline | pendiente | —      |
 | T6  | Pantalla Historial           | S5               | inline | pendiente | —      |
 | T7  | Deshacer end-to-end + toast  | S6, S9           | inline | pendiente | —      |
@@ -113,3 +113,11 @@ partida se archivará."` / `[Cancelar]` / `[Reiniciar]`.
   `npx expo export --platform android`: compila y **empaqueta la TTF de Ionicons**
   (389 KB en `.export-check/assets`), así que no hace falta recompilar el dev client.
   Verificación: `pnpm test:ui` 18/18 · `typecheck`, `lint`, `format:check` limpios.
+
+- **L8 (2026-10-31, T4 hecho):** `src/core/board/grid.ts` con `gridColumns`,
+  `gridShape`, `boardRows`, `findPosition`. US75 en column-major (`B: 1-15 … O: 61-75`),
+  90/80 en row-major, custom con `clamp(ceil(sqrt(total)), 5, 12)` y última fila corta.
+  Casos límite cubiertos: total 1, 10, 36, 200, rango desplazado (5–14) y rango
+  degenerado (min > max → tablero vacío, sin excepción).
+  Verificación: `pnpm test:coverage` 117/117 con **100 % en `src/core/board`** (el gate
+  global sigue en 100 %).
