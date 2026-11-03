@@ -3,8 +3,12 @@
 App móvil offline que reemplaza al bombo físico: **una bola por tap, sin repetición**
 (ver `plan-bingo.md`, que es la especificación).
 
-Estado: **Fase 4 completa salvo el envío a tiendas** — un único
-juego compartido entre pestañas (Sorteo · Tablero · Historial · Ajustes), tablero con
+Estado: **Fase 4 completa salvo el envío a tiendas**. El código vive en
+[`rubengalansanz/bingo`](https://github.com/rubengalansanz/bingo), rama `master`:
+**163 tests de dominio** con 100 % de cobertura y **102 tests de UI**, con typecheck,
+lint y formato en verde.
+
+Un único juego compartido entre pestañas (Sorteo · Tablero · Historial · Ajustes), tablero con
 los 3 formatos de grilla, historial invertido, deshacer persistido con toast, reinicio
 con confirmación, cuatro temas × claro/oscuro con gate de contraste, preferencias en
 MMKV y formulario de rango con validación y reinicio confirmado. Fase 4 añade la bola
@@ -27,8 +31,11 @@ TalkBack/VoiceOver.
 - Jest (ts-jest) + Jest (jest-expo) · @testing-library/react-native · fast-check
 - ESLint (expo) + Prettier · Maestro
 
-## Comandos```bash
+## Comandos
 
+```bash
+
+git clone https://github.com/rubengalansanz/bingo.git && cd bingo
 pnpm install
 pnpm start # Metro
 pnpm android # dev client Android (expo run:android)
@@ -36,7 +43,7 @@ pnpm ios # dev client iOS (expo run:ios, requiere macOS)
 pnpm typecheck
 pnpm lint
 pnpm test # dominio puro + persistencia (SQLite real en Node), sin React
-pnpm test:coverage # umbral 100 % en src/core (incluye tokens, contraste y ajustes)
+pnpm test:coverage # umbral 100 % en src/core (tokens, contraste, ajustes, i18n)
 pnpm test:ui # componentes y store (jest-expo + @testing-library/react-native)
 pnpm format
 pnpm doctor
@@ -94,7 +101,8 @@ shared/kv/ # adaptador MMKV de las preferencias (§5.4)
 shared/feedback/ # adaptador expo-audio + expo-haptics (fire-and-forget, §4.4)
 assets/sounds/ # ball.wav · complete.wav (generados, incluidos en el bundle)
 **tests**/ # navegación por pestañas y Ajustes
-.maestro/ # E2E: 01 arranque · 02 partida corta · 03 persistencia · # 04 deshacer · 05 reinicio · 06 rango bloqueado
+.maestro/ # E2E: 01 arranque · 02 partida corta · 03 persistencia
+         # 04 deshacer · 05 reinicio · 06 rango bloqueado
 .github/workflows/ci.yml # typecheck · lint · format · tests+cobertura · test:ui · expo-doctor
 
 ```
@@ -202,7 +210,7 @@ nativos entran por puertos inyectados (ej. `Uint32Source`).
     extracción» / «No se perderá ninguna extracción» salen de `extractionsLost()`, no de
     una plantilla fija: el flujo 6 opera con una sola bola.
 27. **`ChoiceSheet` propio para las filas con valor (§7.5, ADR-12).** Aplica en vivo, se
-    cierra con *Listo*, anuncia el valor como `radio` y muestra una bola de muestra con
+    cierra con _Listo_, anuncia el valor como `radio` y muestra una bola de muestra con
     los tokens del tema elegido. Sin librería de bottom sheets.
 28. **FEEDBACK e IDIOMA siguen fuera de Fase 3.** Sonido, hápticos, velocidad, reducir
     movimiento e idioma son Fase 4; sus filas no se muestran todavía para no dejar
@@ -254,7 +262,7 @@ nativos entran por puertos inyectados (ej. `Uint32Source`).
     proyectado con el mismo `boardRows` del Tablero: ninguna lógica se duplica. El test
     cambia el tamaño de ventana con `Dimensions.set` en vez de mockear el hook.
 
-## Accesibilidad (gate de Fase 2 + 3)
+## Accesibilidad (gate de Fases 2-4)
 
 Lo que el código garantiza y los tests de componente comprueban — sin depender del color:
 
@@ -263,7 +271,7 @@ Lo que el código garantiza y los tests de componente comprueban — sin depende
       entra al bundle.
 - [x] **Ajustes y rango**: cada fila anuncia etiqueta y valor (`«Tema: Clásico»`), las
       opciones son `radio` con `accessibilityState.checked`, el error del formulario es
-      `alert` y el botón *Aplicar* queda deshabilitado (no oculto) si el rango no valida.
+      `alert` y el botón _Aplicar_ queda deshabilitado (no oculto) si el rango no valida.
       Con un preset fijo los campos muestran los límites de ese preset (no los números
       sobrantes de una edición personalizada anterior), porque son los que se aplican.
 
@@ -311,6 +319,8 @@ lo que queda requiere dispositivos, cuentas o una decisión del usuario:
   entorno no tiene emulador ni build instalado.
 - **Bundle id `com.bingobombo.app`** es provisorio; cambiarlo después de publicar obliga
   a crear otra ficha en las tiendas.
+- **CI en la rama correcta:** `.github/workflows/ci.yml` escucha pushes a `main`, pero
+  el repositorio publica en `master`. Hay que alinear el disparador (`branches:
+[master]`) para que el CI actúe como gate en cada push.
 - **Aviso cosmético de pnpm:** `react-dom@19.3.1` (dependencia interna del CLI de Expo)
   pide `react ^19.3.1` y el SDK fija `19.3.0`. Es un peer transitivo; no afecta al bundle.
-```

@@ -43,8 +43,15 @@ yarn-error.*
 # tests
 coverage/
 
+# tooling artifacts
+.atl/
+.freebuff/
+
 # maestro
 .maestro/*.png
 
 # expo export verification output
 .export-check/
+
+# sessions
+session-*
